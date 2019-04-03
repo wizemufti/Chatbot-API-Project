@@ -1,0 +1,23 @@
+import org.jibble.pircbot.*;
+
+// Help class
+public class MyHelpBot extends PircBot{
+
+	public MyHelpBot() {
+		
+		this.setName("MuftiHelperBot");		//Set name of chat as Avengers
+	}
+	
+	public void onMessage(String channel, String sender, String login, String hostname, String message) {
+		
+		// If user enters helpme
+		if (message.equalsIgnoreCase("help")) {
+			sendMessage(channel, sender + ": You asked for help. ");
+			sendMessage(channel, sender + "");
+			sendMessage(channel, sender + ": To determine the time, please enter -> \"time\".");
+			sendMessage(channel, sender + ": To determine the weather, please enter -> \"weather\" followed by \"city name\".");
+			sendMessage(channel, sender + ": To get some advice, please enter -> \"need advice\".");
+			sendMessage(channel, sender + ": Enjoy the chatroom");
+		}
+	}
+}
