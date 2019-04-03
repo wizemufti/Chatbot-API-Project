@@ -1,0 +1,28 @@
+//Main class
+public class MyBotMain {
+
+	// Main function 
+	public static void main (String[] args) throws Exception {
+		
+		// Start bot up
+		MyBot bot = new MyBot();				// Creates a new object called bot of MyBot
+		MyAdviceBot bot2 = new MyAdviceBot();	// Creates new object bot2 for Advice
+		MyHelpBot bot3 = new MyHelpBot();		// Create new object bot3 for Help
+		
+		// Enable debugging output (Shows chat in the console)
+		bot.setVerbose(true);
+		bot2.setVerbose(true);
+		bot3.setVerbose(true);
+		
+		// Connects to the IRC server
+		bot.connect("irc.freenode.net");
+		bot2.connect("irc.freenode.net");
+		bot3.connect("irc.freenode.net");
+		
+		// Join a channel called #pircbot
+		bot.joinChannel("#theAvengers");
+		bot2.joinChannel("#theAvengers");
+		bot3.joinChannel("#theAvengers");
+		
+	}
+}
