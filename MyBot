@@ -1,0 +1,144 @@
+import org.jibble.pircbot.*;
+import com.google.gson.*;
+import java.net.*;
+import java.io.*;
+import java.math.*;
+
+//My Bot class (Weather & Time)
+public class MyBot extends PircBot {
+	
+	// Function sets name of chat room
+	public MyBot() {
+		
+		this.setName("MuftiWeatherBot");		//Set name of chat as Avengers
+	}
+	
+	// User input's on chat function
+	public void onMessage(String channel, String sender, String login, String hostname, String message) {
+			
+		String content = message;					// content is the message the user sends
+		String command[] = content.split(" ");		// Sperates every word based on every space (space divides variables)
+		
+		int wordCount = 0;
+		wordCount = command.length;		// wordCount is the number of words user inputs
+		
+		// If user enters time
+		if (message.equalsIgnoreCase("time")) {
+			
+			String time = new java.util.Date().toString();
+			
+			sendMessage(channel, sender + ": You entered Time.");
+			sendMessage(channel, sender + "");
+			
+			// Return exact current time
+			// Sends message, outputs the channel and the username then outputs the time
+			sendMessage(channel, sender + ": The exact time is " + time);
+		}
+		
+		
+		// If user enters weather then city name
+		if (command[0].equalsIgnoreCase("weather")) {
+			
+			// Send message asking user to enter a specific city
+			//sendMessage(channel, sender + ": Please enter a City name: ");
+			sendMessage(channel, sender + ": You entered weather. ");
+			sendMessage(channel, sender + "");
+			
+			// If the user only enters one word, display error
+			if (wordCount == 1) {
+				sendMessage(channel, sender + ": Error, you only entered one word. Please try again.");
+			}
+			
+			try {
+				myWeatherAPI(channel, sender, command, wordCount);		// Calls Weather API function if valid
+			} 
+			catch (IOException e) {							// If input is invalid
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+				{
+					sendMessage(channel, sender + ": Error, Invalid input! Please try again ! ");
+				}
+			}
+		}
+	}
+	
+	// Weather API function
+	public void myWeatherAPI(String channel, String sender, String[] command, int wordCount) throws IOException {
+		
+		// If the user enters a zipcode
+		if(command[1].matches(".*\\d.*")) {
+			
+			String userZipInput = command[1];
+			
+			String weatherAPIurlZip = "http://api.openweathermap.org/data/2.5/weather?zip=";	// URL for weather zipcode
+			String myAPItokenZip = "&APPID=e0ca9b892c3ccf674387ac6e4acf9554";					// My API token
+			String weatherURLZip = weatherAPIurlZip + userZipInput + myAPItokenZip;				// Weather 
+			
+			URL url = new URL(weatherURLZip);
+			HttpURLConnection conn = (HttpURLConnection)url.openConnection();
+			conn.setRequestMethod("GET");
+			BufferedReader rd = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+			String result = rd.readLine();
+			String temp = parseJsonFunction(result);					//	Calls function that will parse JSON
+			
+			sendMessage(channel, sender + ": The weather at this zipcode, " + userZipInput + ", is " + temp + " degrees fahrenheit.");
+		}
+		
+		// If user enter's anything other then zipcode, (preferably city)
+		else {
+			
+		String userCityInput = command[1];	// Second variable is city name
+		
+		String weatherAPIurl = "http://api.openweathermap.org/data/2.5/weather?q=";	// URl for weather city
+		String myAPItoken = "&APPID=e0ca9b892c3ccf674387ac6e4acf9554";				// My API token	
+		String weatherURL = weatherAPIurl + userCityInput + myAPItoken;				// Weather
+		
+		// If user inputs more than 2 words
+		if (wordCount > 2) {
+			
+			userCityInput = command[1] + " " + command[2];	// Combines second & third word
+		}
+		
+		else {
+			
+			userCityInput = command[1];		// Second word
+		}
+		
+		URL url = new URL(weatherURL);
+		HttpURLConnection conn = (HttpURLConnection)url.openConnection();
+		conn.setRequestMethod("GET");
+		BufferedReader rd = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+		String result = rd.readLine();
+		String temp = parseJsonFunction(result);					//	Calls function that will parse JSON
+		
+		// Sends temperature to chatroom
+		sendMessage(channel, sender + ": The weather in the city, " + userCityInput + ", is " + temp + " degrees fahrenheit.");	
+		}
+	}
+	
+	// Function will parse Json
+	public static String parseJsonFunction(String json) {
+		
+		JsonObject object = new JsonParser().parse(json).getAsJsonObject();		// New JSON object to pase JSON
+		String cityInput = object.get("name").getAsString();					// cityInput is the "name" taken as a string	
+		JsonObject main = object.getAsJsonObject("main");						// Get's main as a JSON object
+		
+		double temp = main.get("temp").getAsDouble();			// Get the temperature "temp" as a double (kelvin units)
+		temp = (9/5)*(temp - 273) + 32;							// Equation to convert kelvin to Fahrenheit units
+		
+		double newTemp = roundingFunction(temp, 2);				// Call rounding function to round temperature and assign it to newTemp
+		String FinalTemp = Double.toString(newTemp);			// Convert temperature double to string
+
+		return FinalTemp; 	// return new temeperature in string
+	}
+	
+	// Rounds to 2 decimal places (specifically for temperature)
+	private static double roundingFunction(double value, int places) {
+		
+	    if (places < 0) throw new IllegalArgumentException();
+	 
+	    BigDecimal bd = new BigDecimal(Double.toString(value));
+	    bd = bd.setScale(places, RoundingMode.HALF_UP);
+	    return bd.doubleValue();			//newTemp holds return value
+	}
+}
